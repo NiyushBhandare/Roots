@@ -1,0 +1,62 @@
+# =====================================================================
+#  ROOTS — .gitignore
+# =====================================================================
+
+# ----- Maven build output --------------------------------------------
+target/
+*.class
+*.jar
+*.war
+
+# ----- IDE: IntelliJ IDEA --------------------------------------------
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# ----- IDE: Eclipse --------------------------------------------------
+.classpath
+.project
+.settings/
+.factorypath
+bin/
+
+# ----- IDE: VS Code --------------------------------------------------
+.vscode/
+*.code-workspace
+
+# ----- IDE: NetBeans -------------------------------------------------
+nbproject/private/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+# ----- macOS ---------------------------------------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ----- Logs ----------------------------------------------------------
+*.log
+hs_err_pid*
+
+# ----- Roots runtime data --------------------------------------------
+# The application creates ~/.roots/roots.db at runtime — never commit
+# a real user's database file even if it ends up inside the project.
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+.roots/
+
+# ----- Local secrets / overrides -------------------------------------
+.env
+local.properties
+secrets.properties
+
+# ----- Distribution archives we don't want tracked -------------------
+dist/
+*.zip
+*.tar.gz

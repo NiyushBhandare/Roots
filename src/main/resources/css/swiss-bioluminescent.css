@@ -1,0 +1,298 @@
+/* =====================================================================
+   ROOTS — Swiss Bioluminescent
+   A JavaFX stylesheet.
+   ===================================================================== */
+
+.root {
+    -fx-background-color: #0A0B0D;
+    -fx-text-fill: #E8E6E1;
+    -fx-font-family: "JetBrains Mono", "Menlo", "Consolas", monospace;
+    -fx-font-size: 13px;
+
+    /* Custom palette accessible by name in any rule below */
+    soil:        #0A0B0D;
+    soil-raised: #13151A;
+    loam:        #1A1C20;
+    stone:       #2A2D33;
+    bone:        #E8E6E1;
+    ash:         #9A9994;
+    dust:        #5E5C58;
+    mint:        #7FFFB0;
+    coral:       #FF6B5B;
+    cyan:        #9FE8FF;
+    amber:       #FFD66B;
+    lilac:       #C9A8FF;
+}
+
+/* ---------- Typography classes ---------- */
+
+.display {
+    -fx-font-family: "Instrument Serif", "Georgia", serif;
+    -fx-font-size: 42px;
+    -fx-text-fill: bone;
+}
+
+.display-large {
+    -fx-font-family: "Instrument Serif", "Georgia", serif;
+    -fx-font-size: 64px;
+    -fx-text-fill: bone;
+}
+
+.label-mono {
+    -fx-font-family: "JetBrains Mono", "Menlo", monospace;
+    -fx-text-fill: bone;
+    -fx-font-size: 13px;
+}
+
+.label-small {
+    -fx-font-family: "JetBrains Mono", "Menlo", monospace;
+    -fx-text-fill: ash;
+    -fx-font-size: 10px;
+    -fx-letter-spacing: 0.2em;  /* JavaFX ignores this; we space manually with text */
+}
+
+.label-secondary {
+    -fx-text-fill: ash;
+}
+
+.label-tertiary {
+    -fx-text-fill: dust;
+}
+
+/* ---------- Buttons ---------- */
+
+.button {
+    -fx-background-color: transparent;
+    -fx-text-fill: bone;
+    -fx-border-color: bone;
+    -fx-border-width: 1;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-padding: 10 22 10 22;
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: bone;
+    -fx-text-fill: soil;
+}
+
+.button:pressed {
+    -fx-background-color: ash;
+}
+
+.button-accent {
+    -fx-border-color: mint;
+    -fx-text-fill: mint;
+}
+.button-accent:hover {
+    -fx-background-color: mint;
+    -fx-text-fill: soil;
+}
+
+.button-ghost {
+    -fx-border-color: transparent;
+    -fx-text-fill: ash;
+}
+.button-ghost:hover {
+    -fx-background-color: transparent;
+    -fx-text-fill: bone;
+    -fx-border-color: transparent;
+}
+
+.button-danger {
+    -fx-border-color: coral;
+    -fx-text-fill: coral;
+}
+.button-danger:hover {
+    -fx-background-color: coral;
+    -fx-text-fill: soil;
+}
+
+/* ---------- Text fields ---------- */
+
+.text-field, .password-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: bone;
+    -fx-prompt-text-fill: dust;
+    -fx-border-color: loam;
+    -fx-border-width: 0 0 1 0;
+    -fx-background-radius: 0;
+    -fx-padding: 8 0 8 0;
+    -fx-font-family: "JetBrains Mono", monospace;
+}
+
+.text-field:focused, .password-field:focused {
+    -fx-border-color: bone;
+}
+
+/* ---------- Tables ---------- */
+
+.table-view {
+    -fx-background-color: transparent;
+    -fx-table-cell-border-color: transparent;
+    -fx-padding: 0;
+}
+.table-view .column-header-background {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent loam transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.table-view .column-header,
+.table-view .filler {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 8 12 8 12;
+}
+.table-view .column-header .label {
+    -fx-text-fill: ash;
+    -fx-font-size: 10px;
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-alignment: center-left;
+}
+.table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent loam transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 0;
+}
+.table-row-cell:odd {
+    -fx-background-color: transparent;
+}
+.table-row-cell:hover {
+    -fx-background-color: soil-raised;
+}
+.table-row-cell:selected {
+    -fx-background-color: soil-raised;
+}
+.table-view .table-cell {
+    -fx-text-fill: bone;
+    -fx-padding: 10 12 10 12;
+    -fx-border-color: transparent;
+}
+
+/* ---------- Scroll panes ---------- */
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+.scroll-bar {
+    -fx-background-color: transparent;
+}
+.scroll-bar .thumb {
+    -fx-background-color: stone;
+    -fx-background-radius: 0;
+}
+.scroll-bar .thumb:hover {
+    -fx-background-color: ash;
+}
+.scroll-bar .track {
+    -fx-background-color: transparent;
+}
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+}
+
+/* ---------- Choice / combo ---------- */
+
+.choice-box, .combo-box-base {
+    -fx-background-color: transparent;
+    -fx-border-color: loam;
+    -fx-border-width: 0 0 1 0;
+    -fx-background-radius: 0;
+    -fx-text-fill: bone;
+}
+.choice-box:focused, .combo-box-base:focused {
+    -fx-border-color: bone;
+}
+.combo-box .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: bone;
+}
+.combo-box-popup .list-view {
+    -fx-background-color: soil-raised;
+    -fx-border-color: loam;
+    -fx-border-width: 1;
+}
+.combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: loam;
+}
+
+/* ---------- Sidebar nav ---------- */
+
+.nav-rail {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent loam transparent transparent;
+    -fx-border-width: 0 1 0 0;
+    -fx-padding: 32 0 32 0;
+}
+.nav-item {
+    -fx-background-color: transparent;
+    -fx-text-fill: ash;
+    -fx-border-color: transparent;
+    -fx-padding: 14 24 14 24;
+    -fx-font-size: 11px;
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-cursor: hand;
+    -fx-alignment: center-left;
+}
+.nav-item:hover {
+    -fx-text-fill: bone;
+    -fx-background-color: soil-raised;
+}
+.nav-item-active {
+    -fx-text-fill: bone;
+    -fx-border-color: transparent transparent transparent bone;
+    -fx-border-width: 0 0 0 2;
+    -fx-background-color: soil-raised;
+}
+
+/* ---------- Cards ---------- */
+
+.card {
+    -fx-background-color: soil-raised;
+    -fx-border-color: loam;
+    -fx-border-width: 1;
+    -fx-padding: 24;
+}
+
+/* ---------- Vitality band chips ---------- */
+
+.chip {
+    -fx-background-color: transparent;
+    -fx-border-color: ash;
+    -fx-border-width: 1;
+    -fx-padding: 2 8 2 8;
+    -fx-font-size: 9px;
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-text-fill: ash;
+}
+.chip-thriving {
+    -fx-border-color: mint;
+    -fx-text-fill: mint;
+}
+.chip-steady {
+    -fx-border-color: cyan;
+    -fx-text-fill: cyan;
+}
+.chip-fading {
+    -fx-border-color: amber;
+    -fx-text-fill: amber;
+}
+.chip-dormant {
+    -fx-border-color: coral;
+    -fx-text-fill: coral;
+}
