@@ -59,12 +59,18 @@ public final class ObsidianBridge implements AutoCloseable {
             Pattern.compile("(?ms)^---.*?^tags:\\s*\\[?([^\\]\\n]+)\\]?.*?^---");
 
     private final IdeaNodeDao   ideaDao;
+    private final VaultWriter   vaultWriter;  // for self-write debouncing
     private       WatchService  watchService;
     private       Thread        watchThread;
     private final AtomicBoolean watching = new AtomicBoolean(false);
 
     public ObsidianBridge(IdeaNodeDao ideaDao) {
-        this.ideaDao = ideaDao;
+        this(ideaDao, null);
+    }
+
+    public ObsidianBridge(IdeaNodeDao ideaDao, VaultWriter vaultWriter) {
+        this.ideaDao     = ideaDao;
+        this.vaultWriter = vaultWriter;
     }
 
     // -----------------------------------------------------------------
@@ -181,6 +187,13 @@ public final class ObsidianBridge implements AutoCloseable {
                 Path child   = watched.resolve((Path) event.context());
                 if (!child.toString().toLowerCase().endsWith(".md")) continue;
                 if (!Files.isRegularFile(child)) continue;
+
+                // Skip events for files Roots just wrote itself — otherwise
+                // a single user edit inside Roots would round-trip back
+                // through the FileWatcher and trigger a second DB write.
+                String relative = vaultRoot.relativize(child).toString().replace('\\', '/');
+                if (vaultWriter != null && vaultWriter.wasRecentlyWritten(relative)) continue;
+
                 try {
                     IdeaNode candidate = parseMarkdownFile(vaultRoot, child, ownerId);
                     ideaDao.upsertByVaultPath(candidate);

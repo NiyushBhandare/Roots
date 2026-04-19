@@ -112,6 +112,19 @@ public final class DatabaseManager {
                     seed = substitutePasswordPlaceholders(seed);
                     applyScript(conn, seed);
                 }
+                // Lazy migration: add hash-chain columns to audit_log if
+                // an older database is missing them. SQLite supports
+                // ALTER TABLE ADD COLUMN, which is all we need.
+                if (!columnExists(conn, "audit_log", "prev_hash")) {
+                    try (Statement st = conn.createStatement()) {
+                        st.execute("ALTER TABLE audit_log ADD COLUMN prev_hash TEXT");
+                    }
+                }
+                if (!columnExists(conn, "audit_log", "this_hash")) {
+                    try (Statement st = conn.createStatement()) {
+                        st.execute("ALTER TABLE audit_log ADD COLUMN this_hash TEXT");
+                    }
+                }
             }
             bootstrapped = true;
         }
@@ -120,6 +133,17 @@ public final class DatabaseManager {
     // -----------------------------------------------------------------
     //  Internals.
     // -----------------------------------------------------------------
+
+    private static boolean columnExists(Connection conn, String table, String column) throws SQLException {
+        String sql = "SELECT 1 FROM pragma_table_info(?) WHERE name = ?";
+        try (var ps = conn.prepareStatement(sql)) {
+            ps.setString(1, table);
+            ps.setString(2, column);
+            try (var rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
 
     private static boolean tableExists(Connection conn, String name) throws SQLException {
         String sql = "SELECT name FROM sqlite_master WHERE type='table' AND name = ?";
@@ -139,14 +163,16 @@ public final class DatabaseManager {
     }
 
     private static void applyScript(Connection conn, String sql) throws SQLException {
-        // Split on semicolon-newline to keep INSERT statements atomic
-        // while respecting multi-line CREATE TABLE blocks.
-        String[] stmts = sql.split(";\\s*\\r?\\n");
+        // Strip all SQL single-line comments first, then split on semicolons.
+        // This is more reliable than line-by-line accumulation because it
+        // handles inline comments, multi-line strings, and trailing content.
+        String stripped = sql.replaceAll("--[^\n]*", "");  // remove comments
+        String[] stmts = stripped.split(";");
         try (Statement st = conn.createStatement()) {
             for (String raw : stmts) {
                 String s = raw.trim();
-                if (s.isEmpty() || s.startsWith("--")) continue;
-                st.execute(s);
+                if (s.isEmpty()) continue;
+                st.execute(s + ";");
             }
         }
     }

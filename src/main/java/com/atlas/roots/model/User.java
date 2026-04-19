@@ -23,6 +23,13 @@ public class User implements Auditable {
     private LocalDateTime createdAt;
     private LocalDateTime lastTouched;
 
+    // Google OAuth linkage — all nullable (a user may have local-only or Google-only auth)
+    private String        googleSub;               // stable Google user ID
+    private String        googleEmail;             // email at link time, display only
+    private String        googleAccessToken;       // encrypted, short-lived
+    private String        googleRefreshToken;      // encrypted, long-lived
+    private LocalDateTime googleTokenExpires;      // when access_token expires
+
     public User(String username, String passwordHash, Role role) {
         this.username     = Objects.requireNonNull(username);
         this.passwordHash = Objects.requireNonNull(passwordHash);
@@ -58,6 +65,18 @@ public class User implements Auditable {
     public void setRole(Role role)     { this.role = role; }
 
     public boolean isAdmin() { return role == Role.ADMIN; }
+
+    public String        getGoogleSub()                     { return googleSub; }
+    public void          setGoogleSub(String s)             { this.googleSub = s; }
+    public String        getGoogleEmail()                   { return googleEmail; }
+    public void          setGoogleEmail(String e)           { this.googleEmail = e; }
+    public String        getGoogleAccessToken()             { return googleAccessToken; }
+    public void          setGoogleAccessToken(String t)     { this.googleAccessToken = t; }
+    public String        getGoogleRefreshToken()            { return googleRefreshToken; }
+    public void          setGoogleRefreshToken(String t)    { this.googleRefreshToken = t; }
+    public LocalDateTime getGoogleTokenExpires()            { return googleTokenExpires; }
+    public void          setGoogleTokenExpires(LocalDateTime e) { this.googleTokenExpires = e; }
+    public boolean       isGoogleLinked() { return googleSub != null && !googleSub.isBlank(); }
 
     @Override
     public String toString() {

@@ -96,6 +96,21 @@ public abstract class NodeRepository<T extends RootNode> {
         }
     }
 
+    /**
+     * Delete every node of this type owned by the given user.
+     * Used by the import REPLACE mode to wipe before re-populating.
+     * The attribute row cascades via FK.
+     */
+    public int deleteAllByOwner(long ownerId) throws SQLException {
+        try (Connection conn = db.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "DELETE FROM nodes WHERE owner_id = ? AND type = ?")) {
+            ps.setLong(1, ownerId);
+            ps.setString(2, managedType.name());
+            return ps.executeUpdate();
+        }
+    }
+
     /** Find by id. Empty if not found or wrong type. */
     public Optional<T> findById(long id) throws SQLException {
         String sql = """
@@ -160,6 +175,30 @@ public abstract class NodeRepository<T extends RootNode> {
             ps.setLong(2, ownerId);
             ps.setString(3, "%" + fragment.toLowerCase() + "%");
             return collect(conn, ps);
+        }
+    }
+
+    /**
+     * Look up a node by its exact name within an owner's collection.
+     * Used by the markdown importer to decide whether an incoming node
+     * should overwrite an existing row or skip it.
+     */
+    public Optional<T> findByExactName(long ownerId, String name) throws SQLException {
+        String sql = """
+                SELECT n.id, n.name, n.description, n.owner_id, n.created_at,
+                       n.last_touched, n.archived
+                FROM nodes n
+                WHERE n.type = ? AND n.owner_id = ? AND n.name = ?
+                LIMIT 1""";
+        try (Connection conn = db.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, managedType.name());
+            ps.setLong(2, ownerId);
+            ps.setString(3, name);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return Optional.empty();
+                return Optional.of(hydrate(conn, rs));
+            }
         }
     }
 

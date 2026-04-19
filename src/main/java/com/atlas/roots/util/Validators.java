@@ -5,12 +5,16 @@ import java.util.regex.Pattern;
 
 /**
  * Centralised input validation. Each method either returns silently
- * (input is valid) or throws an {@link IllegalArgumentException}
- * carrying a human-readable message that the UI surfaces directly.
+ * (input is valid) or throws a {@link ValidationException} carrying
+ * a human-readable message that the UI surfaces directly.
  *
  * <p>Keeping all rules in one class means the same validation logic
- * is shared between the JavaFX form layer, the service layer, and the
- * unit tests &mdash; there is exactly one place to change the rules.</p>
+ * is shared between the web layer, the service layer, and the unit
+ * tests &mdash; there is exactly one place to change the rules.</p>
+ *
+ * <p>{@link ValidationException} extends {@link IllegalArgumentException}
+ * so legacy catch blocks that were written against the standard JDK
+ * exception continue to work without modification.</p>
  */
 public final class Validators {
 
@@ -21,31 +25,31 @@ public final class Validators {
 
     public static void requireNonBlank(String field, String value) {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(field + " is required");
+            throw new ValidationException(field + " is required");
         }
     }
 
     public static void requireUsername(String username) {
         requireNonBlank("username", username);
         if (!USERNAME.matcher(username).matches()) {
-            throw new IllegalArgumentException(
+            throw new ValidationException(
                 "username must be 3–24 chars, lowercase letters, digits, or underscores");
         }
     }
 
     public static void requirePassword(String password) {
         if (password == null || password.length() < 8) {
-            throw new IllegalArgumentException("password must be at least 8 characters");
+            throw new ValidationException("password must be at least 8 characters");
         }
     }
 
     public static void requireNonNegative(String field, double value) {
-        if (value < 0) throw new IllegalArgumentException(field + " must be ≥ 0");
+        if (value < 0) throw new ValidationException(field + " must be ≥ 0");
     }
 
     public static void requireRange(String field, int value, int min, int max) {
         if (value < min || value > max) {
-            throw new IllegalArgumentException(
+            throw new ValidationException(
                 "%s must be between %d and %d".formatted(field, min, max));
         }
     }
@@ -53,13 +57,13 @@ public final class Validators {
     public static void requireCurrency(String currency) {
         requireNonBlank("currency", currency);
         if (!CURRENCY.matcher(currency).matches()) {
-            throw new IllegalArgumentException("currency must be a 3-letter ISO code (e.g. INR, USD)");
+            throw new ValidationException("currency must be a 3-letter ISO code (e.g. INR, USD)");
         }
     }
 
     public static void requireNotFuture(String field, LocalDate date) {
         if (date != null && date.isAfter(LocalDate.now())) {
-            throw new IllegalArgumentException(field + " cannot be in the future");
+            throw new ValidationException(field + " cannot be in the future");
         }
     }
 }
