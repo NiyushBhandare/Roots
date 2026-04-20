@@ -30,14 +30,17 @@ import java.util.regex.Pattern;
 public final class StripeReceiptParser {
 
     // Subject patterns — most-specific to least-specific. First match wins.
+    // The captured name must start with a capital letter — this filters out
+    // sentence fragments like "payment to your account" where "your" would
+    // otherwise get captured as a "business name".
     private static final Pattern SUBJECT_FROM = Pattern.compile(
-            "(?i)(?:your )?receipt from ([^#\\[\\n,]+?)(?:\\s*[\\[#,]|$)");
+            "(?i)(?:your )?receipt from ([A-Z][^#\\[\\n,]*?)(?:\\s*[\\[#,]|$)");
     private static final Pattern SUBJECT_PAYMENT_TO = Pattern.compile(
-            "(?i)payment to ([^\\n,#\\[]+?)(?:\\s*[,#\\[]|\\s+(?:for|of)\\b|$)");
+            "(?i)payment to ([A-Z][^\\n,#\\[]*?)(?:\\s*[,#\\[]|\\s+(?:for|of)\\b|$)");
     private static final Pattern SUBJECT_YOUR_X = Pattern.compile(
             "(?i)(?:your|welcome to) ([A-Z][a-zA-Z0-9 .]+?)(?:\\s+(?:subscription|plan|account|team|pro|premium)|$)");
     private static final Pattern SUBJECT_INVOICE = Pattern.compile(
-            "(?i)invoice (?:from|for) ([^#\\[,\\n]+?)(?:\\s*[,#\\[]|$)");
+            "(?i)invoice (?:from|for) ([A-Z][^#\\[,\\n]*?)(?:\\s*[,#\\[]|$)");
 
     // "Cursor Billing <billing@cursor.com>" → "Cursor Billing"
     private static final Pattern SENDER_DISPLAY_NAME = Pattern.compile(
@@ -60,10 +63,19 @@ public final class StripeReceiptParser {
             "stripe.com", "paypal.com", "razorpay.com", "squareup.com",
             "gmail.com", "google.com", "amazonaws.com");
 
-    // Non-receipt subjects we actively skip
+    // Non-receipt subjects we actively skip. These are signals that the
+    // email isn't a paid-subscription receipt — it's a status update, a
+    // delivery notification, a reminder, a marketing email.
     private static final Set<String> NEGATIVE_SUBJECT_HINTS = Set.of(
             "reminder", "expires soon", "renewal", "welcome", "action required",
-            "payment failed", "update your", "verify your", "confirm your");
+            "payment failed", "update your", "verify your", "confirm your",
+            // Physical-goods order flow — not a subscription receipt
+            "delivered", "out for delivery", "order was", "shipment", "shipped",
+            "tracking", "arriving", "on the way",
+            // Password/security noise
+            "password", "security alert", "sign-in attempt",
+            // Marketing noise
+            "last chance", "sale", "% off", "new arrivals");
 
     private StripeReceiptParser() {}
 
@@ -146,15 +158,38 @@ public final class StripeReceiptParser {
 
     private static String cleanName(String raw) {
         if (raw == null) return "";
-        return raw.trim().replaceAll("[\\s,]+$", "").replaceAll("^[\\s,]+", "");
+        String cleaned = raw.trim()
+                .replaceAll("[\\s,]+$", "")
+                .replaceAll("^[\\s,]+", "");
+        // Strip trailing receipt-noise words that sometimes get captured:
+        // "Canva invoice" → "Canva", "Notion receipt" → "Notion"
+        cleaned = cleaned.replaceAll(
+                "(?i)\\s+(invoice|receipt|order|payment|bill|statement|charge)s?$", "");
+        // Strip trailing corporate suffixes
+        cleaned = cleaned.replaceAll("(?i)[,.]?\\s*(inc|llc|ltd|corp|co)\\.?$", "");
+        return cleaned.trim();
     }
 
     private static boolean isPlatformNoise(String candidate) {
         if (candidate == null) return true;
-        String lc = candidate.toLowerCase();
+        String lc = candidate.toLowerCase().trim();
+        // Sanity: must be 2-30 chars, real business names fit in that range
+        if (lc.length() < 2 || lc.length() > 30) return true;
+        // Reject fragments that are clearly not business names
         return lc.equals("inc") || lc.equals("llc") || lc.equals("ltd")
             || lc.equals("team") || lc.equals("billing") || lc.equals("support")
-            || lc.equals("stripe");
+            || lc.equals("stripe")
+            // Single-word generic receipt noise (these are never real businesses)
+            || lc.equals("payment") || lc.equals("payments")
+            || lc.equals("invoice") || lc.equals("receipt") || lc.equals("order")
+            || lc.equals("purchase") || lc.equals("subscription")
+            || lc.equals("account") || lc.equals("service") || lc.equals("charge")
+            // Common user-directed words captured from sentence fragments
+            || lc.equals("your") || lc.equals("you") || lc.equals("thanks")
+            || lc.startsWith("successfully ") || lc.startsWith("your ")
+            // Extracted name contains a verb-like form → it's a sentence, not a name
+            || lc.contains(" was ") || lc.contains(" has ") || lc.contains(" is ")
+            || lc.contains(" successfully");
     }
 
     private static String capitalize(String s) {
